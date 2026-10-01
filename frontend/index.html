@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>SysmoDev Tarefas</title>
+    <script>
+      // Aplica o tema ANTES da primeira pintura, como no Controle de Horas: feito no
+      // React, a pagina apareceria clara por um quadro antes de escurecer.
+      try {
+        var t = localStorage.getItem('tarefas.tema');
+        if (t === 'claro') document.documentElement.setAttribute('data-theme', 'light');
+        else if (t === 'escuro') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {
+        // localStorage bloqueado: segue no tema do sistema.
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+# Credenciais — nunca versionar
+.env
+.env.*
+!.env.example
+
+# A base fica em ../../db/trabalho.db, fora deste repositorio, e e a mesma
+# do Controle de Horas - ver o README.
+# Nada de banco aqui.
+*.db
+*.db3
+
+# Backend
+target/
+.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Editor / sistema
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
