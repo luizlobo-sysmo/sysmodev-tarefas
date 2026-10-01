@@ -19,6 +19,10 @@ cd frontend && npm run dev              site em localhost:8003
 Mesmas exigências do [Controle de Horas](../controlehoras/README.md#rodar): **JDK 17** no
 `JAVA_HOME` (o Painel resolve com `{jdk17}`) e `npm install` feito **no Windows**.
 
+O depurador do `quarkus:dev` escuta na **5103**, fixada no `pom.xml` (`<debug>`). O padrão
+do Quarkus é 5005 para qualquer projeto, e o Painel sobe este e o Controle de Horas juntos: o
+segundo a subir morria com `bind failed: Address already in use` antes de abrir a API.
+
 ## Base compartilhada
 
 A base é o `../../db/trabalho.db`, o **mesmo arquivo** do Controle de Horas. O histórico

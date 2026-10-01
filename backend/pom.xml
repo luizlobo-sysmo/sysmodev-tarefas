@@ -23,6 +23,13 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.37.4</quarkus.platform.version>
         <skipITs>true</skipITs>
+        <!--
+          Porta do depurador do quarkus:dev. O padrao e 5005 para todo projeto, e o
+          Painel sobe Controle de Horas e Tarefas juntos: o segundo morria com "bind
+          failed: Address already in use" antes de abrir a API. Faixa 51xx, uma por
+          projeto, fora da 50xx das APIs.
+        -->
+        <debug>5103</debug>
         <sqlite.version>3.46.1.3</sqlite.version>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
     </properties>
