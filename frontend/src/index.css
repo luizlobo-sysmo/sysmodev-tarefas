@@ -691,3 +691,16 @@ textarea {
   max-height: 240px;
   overflow-y: auto;
 }
+
+/*
+  Quatro campos numa linha do formulário estouravam o modal: o <input> tem largura
+  intrínseca (size=20) e o item flex não encolhe abaixo do próprio conteúdo sem
+  min-width: 0. Com os dois, a linha divide a largura que existe.
+*/
+.formulario .linha > label {
+  min-width: 0;
+}
+
+.formulario .linha > label > input {
+  width: 100%;
+}
