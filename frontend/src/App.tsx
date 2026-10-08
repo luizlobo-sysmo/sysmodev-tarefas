@@ -2,19 +2,16 @@ import { useCallback, useEffect, useState } from 'react';
 import Filtros from './components/Filtros';
 import ListaTarefas from './components/ListaTarefas';
 import EditarTarefa from './components/EditarTarefa';
-import Importar from './components/Importar';
-import { Filtro, FILTRO_VAZIO, Opcoes, Tarefa } from './types/tarefa';
-import { lerOpcoes, listarTarefas, mensagemDeErro } from './services/api';
+import { Filtro, FILTRO_VAZIO, Tarefa } from './types/tarefa';
+import { listarTarefas, mensagemDeErro } from './services/api';
 import { lerTema, salvarTema, Tema } from './util/tema';
+import { useAoMudarBase } from './util/aoMudarBase';
 
-const SEM_OPCOES: Opcoes = { tipos: [], etapas: [], devs: [], tags: [] };
-
-type Janela = 'nenhuma' | 'editar' | 'importar';
+type Janela = 'nenhuma' | 'editar';
 
 export default function App() {
   const [filtro, setFiltro] = useState<Filtro>(FILTRO_VAZIO);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
-  const [opcoes, setOpcoes] = useState<Opcoes>(SEM_OPCOES);
   const [editando, setEditando] = useState<number | null>(null);
   const [janela, setJanela] = useState<Janela>('nenhuma');
   const [tema, setTema] = useState<Tema>(lerTema());
@@ -30,18 +27,6 @@ export default function App() {
     }
   }, [filtro]);
 
-  const recarregarOpcoes = useCallback(async () => {
-    try {
-      setOpcoes(await lerOpcoes());
-    } catch (e) {
-      setErro(mensagemDeErro(e));
-    }
-  }, []);
-
-  useEffect(() => {
-    recarregarOpcoes();
-  }, [recarregarOpcoes]);
-
   /**
    * Recarrega ao mudar o filtro, esperando 250ms sem digitação — sem a espera, a
    * resposta de uma tecla antiga que chegue atrasada sobrescreve a atual.
@@ -50,6 +35,10 @@ export default function App() {
     const espera = setTimeout(atualizar, 250);
     return () => clearTimeout(espera);
   }, [atualizar]);
+
+  // Tarefa registrada pela skill aparece sem F5. Com janela aberta espera fechar, para
+  // a lista não mudar embaixo de quem edita.
+  useAoMudarBase(atualizar, janela !== 'nenhuma');
 
   function abrir(id: number | null) {
     setEditando(id);
@@ -61,7 +50,7 @@ export default function App() {
     setEditando(null);
 
     if (alterou) {
-      await Promise.all([atualizar(), recarregarOpcoes()]);
+      await atualizar();
     }
   }
 
@@ -80,9 +69,6 @@ export default function App() {
           <button type="button" className="botao primario" onClick={() => abrir(null)}>
             Nova tarefa
           </button>
-          <button type="button" className="botao" onClick={() => setJanela('importar')}>
-            Importar planilha
-          </button>
           <label>
             Tema
             <select value={tema} onChange={(e) => mudarTema(e.target.value as Tema)}>
@@ -95,7 +81,7 @@ export default function App() {
       </header>
 
       <div className="barra-filtro">
-        <Filtros filtro={filtro} opcoes={opcoes} onMudar={setFiltro} />
+        <Filtros filtro={filtro} onMudar={setFiltro} />
       </div>
 
       {erro && <p className="erro faixa">{erro}</p>}
@@ -104,8 +90,7 @@ export default function App() {
         <ListaTarefas tarefas={tarefas} onEditar={abrir} />
       </main>
 
-      {janela === 'editar' && <EditarTarefa id={editando} opcoes={opcoes} onFechar={fechar} />}
-      {janela === 'importar' && <Importar onFechar={fechar} />}
+      {janela === 'editar' && <EditarTarefa id={editando} onFechar={fechar} />}
     </div>
   );
 }

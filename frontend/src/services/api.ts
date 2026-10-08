@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Filtro, Importacao, Opcoes, Tarefa } from '../types/tarefa';
+import { Filtro, Tarefa } from '../types/tarefa';
 
 const api = axios.create({ baseURL: '/api' });
 
@@ -32,11 +32,6 @@ export async function listarTarefas(filtro: Filtro): Promise<Tarefa[]> {
   return data;
 }
 
-export async function lerOpcoes(): Promise<Opcoes> {
-  const { data } = await api.get<Opcoes>('/tarefas/opcoes');
-  return data;
-}
-
 export async function localizarTarefa(id: number): Promise<Tarefa> {
   const { data } = await api.get<Tarefa>(`/tarefas/${id}`);
   return data;
@@ -53,10 +48,4 @@ export async function salvarTarefa(tarefa: Partial<Tarefa> & { id: number }): Pr
 
 export async function deletarTarefa(id: number): Promise<void> {
   await api.delete(`/tarefas/${id}`);
-}
-
-/** O CSV da aba Tarefas, como o Google Planilhas exporta. Só cria; nada é sobrescrito. */
-export async function importarPlanilha(csv: string): Promise<Importacao> {
-  const { data } = await api.post<Importacao>('/tarefas/importar', csv, { headers: { 'Content-Type': 'text/csv' } });
-  return data;
 }

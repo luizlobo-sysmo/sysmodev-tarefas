@@ -6,15 +6,6 @@ interface Props {
   onEditar: (id: number) => void;
 }
 
-/** Etapa vira classe de cor: o que ainda anda se destaca do que já fechou. */
-function classeDaEtapa(etapa: string): string {
-  const valor = etapa.toLowerCase();
-  if (valor.startsWith('conclu')) return 'etapa concluida';
-  if (valor.startsWith('recus')) return 'etapa recusada';
-  if (valor === '') return '';
-  return 'etapa andando';
-}
-
 /**
  * A lista do histórico, uma tarefa por linha.
  *
@@ -33,12 +24,6 @@ export default function ListaTarefas({ tarefas, onEditar }: Props) {
           <th className="col-data">Atualização</th>
           <th className="col-tarefa">Tarefa</th>
           <th>Título</th>
-          <th className="col-tipo">Tipo</th>
-          <th className="col-etapa">Etapa</th>
-          <th className="col-dev">Dev</th>
-          <th>Tag</th>
-          <th>Versões</th>
-          <th className="col-tempo" title="Apontado no Controle de Horas">Horas</th>
         </tr>
       </thead>
       <tbody>
@@ -62,23 +47,6 @@ export default function ListaTarefas({ tarefas, onEditar }: Props) {
               </a>
             </td>
             <td className="titulo-tarefa">{tarefa.titulo}</td>
-            <td className="col-tipo">{tarefa.tipo}</td>
-            <td className="col-etapa">
-              <span className={classeDaEtapa(tarefa.etapa)}>{tarefa.etapa}</span>
-            </td>
-            <td className="col-dev">{tarefa.dev}</td>
-            <td className="comentario">{tarefa.tag}</td>
-            <td className="comentario">{tarefa.versoes}</td>
-            <td
-              className="col-tempo numero"
-              title={
-                tarefa.primeiroDia && tarefa.ultimoDia
-                  ? `De ${paraBrasileiro(tarefa.primeiroDia)} a ${paraBrasileiro(tarefa.ultimoDia)}`
-                  : 'Sem apontamento'
-              }
-            >
-              {tarefa.horasRelogio ?? ''}
-            </td>
           </tr>
         ))}
       </tbody>

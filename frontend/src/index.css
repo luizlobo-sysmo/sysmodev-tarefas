@@ -634,38 +634,11 @@ textarea {
   width: 96px;
 }
 
-.col-tipo,
-.col-etapa,
-.col-dev {
-  width: 110px;
-}
-
-.etapa {
-  display: inline-block;
-  padding: 1px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  background: var(--cor-ambar-fundo);
-  color: var(--cor-ambar);
-}
-
-.etapa.concluida {
-  background: transparent;
-  color: var(--cor-verde);
-}
-
-.etapa.recusada {
-  background: transparent;
-  color: var(--cor-texto-apagado);
-  text-decoration: line-through;
-}
-
 .campo-numero {
   flex: 0 0 110px !important;
 }
 
-.rodape-tarefa,
-.explicacao {
+.rodape-tarefa {
   margin: 0;
   font-size: 13px;
   color: var(--cor-texto-fraco);
@@ -673,23 +646,6 @@ textarea {
 
 .rodape-tarefa a {
   color: var(--cor-primaria);
-}
-
-.aviso-ok {
-  margin: 0;
-  padding: 8px 10px;
-  border-radius: var(--raio);
-  background: var(--cor-realce);
-  font-size: 13px;
-}
-
-.avisos {
-  margin: 0;
-  padding-left: 20px;
-  font-size: 13px;
-  color: var(--cor-ambar);
-  max-height: 240px;
-  overflow-y: auto;
 }
 
 /*

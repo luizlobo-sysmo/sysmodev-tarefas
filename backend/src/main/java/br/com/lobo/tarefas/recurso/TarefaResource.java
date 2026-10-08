@@ -5,16 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.lobo.tarefas.Filtro;
-import br.com.lobo.tarefas.dto.ImportacaoDto;
-import br.com.lobo.tarefas.dto.OpcoesDto;
 import br.com.lobo.tarefas.dto.TarefaDto;
 import br.com.lobo.tarefas.repositorio.TarefaRepositorio;
-import br.com.lobo.tarefas.servico.Importacao;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -31,25 +27,11 @@ public class TarefaResource {
     @Inject
     TarefaRepositorio tarefas;
 
-    @Inject
-    Importacao importacao;
-
     @GET
-    public List<TarefaDto> listar(@QueryParam("texto") String texto,
-                                  @QueryParam("tipo") String tipo,
-                                  @QueryParam("etapa") String etapa,
-                                  @QueryParam("dev") String dev,
-                                  @QueryParam("tag") String tag) {
-
-        Filtro filtro = Filtro.de(texto, tipo, etapa, dev, tag);
+    public List<TarefaDto> listar(@QueryParam("texto") String texto) {
+        Filtro filtro = Filtro.de(texto);
 
         return tarefas.listar().stream().filter(filtro::casa).toList();
-    }
-
-    @GET
-    @Path("/opcoes")
-    public OpcoesDto opcoes() {
-        return tarefas.opcoes();
     }
 
     @GET
@@ -68,7 +50,7 @@ public class TarefaResource {
      * /sysmo-redmine-work usa depois de lancar a hora, sem precisar perguntar antes
      * se a tarefa existe.
      *
-     * Na alteracao, campo nulo fica como esta - ver TarefaRepositorio.atualizar.
+     * Na alteracao, titulo nulo fica como esta - ver TarefaRepositorio.atualizar.
      * `atualizacao` em branco vira hoje: e o dia em que o historico foi mexido.
      */
     @PUT
@@ -107,17 +89,6 @@ public class TarefaResource {
         return tarefas.deletar(id)
              ? Response.noContent().build()
              : Response.status(Response.Status.NOT_FOUND).build();
-    }
-
-    /**
-     * Importa a aba Tarefas da planilha, em CSV (Arquivo > Fazer download > CSV no
-     * Google Planilhas). So cria; tarefa que ja existe e mantida.
-     */
-    @POST
-    @Path("/importar")
-    @Consumes({ "text/csv", MediaType.TEXT_PLAIN })
-    public ImportacaoDto importar(String csv) {
-        return importacao.importar(csv);
     }
 
     private Response erro(String mensagem) {

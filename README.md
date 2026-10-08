@@ -1,11 +1,11 @@
 # Tarefas
 
-Histórico das tarefas do Redmine — as que fiz e as que acompanho —, com quanto tempo foi
-apontado em cada uma. Substitui a aba **Tarefas** da planilha do Google em que esse histórico
-era mantido à mão.
+Histórico das tarefas do Redmine em que mexi: número, título e o último dia em que a tarefa foi
+mexida. Substitui a aba **Tarefas** da planilha do Google em que esse histórico era mantido à
+mão.
 
-Não é um espelho do Redmine. Guarda o que interessa lembrar de cada tarefa: título, tipo,
-etapa, quem fez, tag e versões em que saiu. A tag só existe aqui.
+Não é um espelho do Redmine. Tipo, situação, quem fez, versões e horas se consultam lá, pelo
+link do número; uma cópia aqui só ficaria desatualizada.
 
 ## Rodar
 
@@ -23,23 +23,18 @@ O depurador do `quarkus:dev` escuta na **5103**, fixada no `pom.xml` (`<debug>`)
 do Quarkus é 5005 para qualquer projeto, e o Painel sobe este e o Controle de Horas juntos: o
 segundo a subir morria com `bind failed: Address already in use` antes de abrir a API.
 
-## Base compartilhada
+## Base
 
-A base é o `../../db/trabalho.db`, o **mesmo arquivo** do Controle de Horas. O histórico
-existe em boa parte para responder "quanto tempo foi nesta tarefa", e as horas estão lá: com
-dois arquivos, a resposta exigiria abrir os dois e juntar na mão.
+A base é o `../../db/trabalho.db`, o **mesmo arquivo** do Controle de Horas.
 
 | Tabela | Dono | Aqui |
 |---|---|---|
 | `TB_TAREFA` | este app | cria na subida e grava |
-| `TB_HORA` | Controle de Horas | só lê — soma por tarefa, primeiro e último dia |
+| `TB_HORA` | Controle de Horas | não é lida |
 
-A `TB_HORA` nunca é criada nem alterada por este app. Numa base em que o Controle de Horas
-nunca subiu ela não existe, e a lista sai sem horas — `Base.temHoras` pergunta a cada
-consulta, porque o outro app pode criá-la com este no ar.
-
-O número da tarefa é o do Redmine e é a chave: é o mesmo `CD_TAREFA` que o lançamento de
-horas grava, e é o que faz a junção funcionar sem tabela de ligação.
+`TB_TAREFA` tem só `ID` (o número da tarefa no Redmine), `TX_TITULO` e `DT_ATUALIZACAO`. A
+subida apaga as colunas da primeira versão (`TX_TIPO`, `TX_ETAPA`, `TX_DEV`, `TX_TAG`,
+`TX_VERSOES`), se ainda existirem.
 
 Dois processos gravam o arquivo, e por isso a conexão abre com `PRAGMA busy_timeout = 5000`.
 Sem a espera, gravar no instante em que o outro segura o arquivo falha na hora com
@@ -49,62 +44,38 @@ Sem a espera, gravar no instante em que o outro segura o arquivo falha na hora c
 
 | Verbo | Rota | O quê |
 |---|---|---|
-| GET | `/api/tarefas?texto=&tipo=&etapa=&dev=&tag=` | lista, da atualizada mais recentemente para a mais antiga, com as horas |
-| GET | `/api/tarefas/opcoes` | valores já usados em tipo, etapa, dev e tag |
+| GET | `/api/tarefas?texto=` | lista, da atualizada mais recentemente para a mais antiga |
 | GET | `/api/tarefas/{id}` | uma tarefa |
 | PUT | `/api/tarefas/{id}` | cria (201) ou altera (200) |
 | DELETE | `/api/tarefas/{id}` | apaga do histórico; as horas ficam no Controle de Horas |
-| POST | `/api/tarefas/importar` | importa a aba Tarefas da planilha, em CSV |
+| GET | `/api/base/versao` | data da última gravação na base — ver abaixo |
 
-### `PUT` cria ou altera, e nulo mantém
+### Atualização sozinha
+
+`GET /api/base/versao` devolve a data da última gravação do `trabalho.db`. A tela pergunta a
+cada 5 s e ao voltar o foco para a aba, e só recarrega quando o número muda — é o que faz a hora
+lançada pela `/sysmo-redmine-work`, ou a gravação do outro app, aparecer sem F5. A data do
+arquivo, e não uma contagem de linhas: pega inserção, alteração e exclusão em qualquer tabela
+com uma leitura de metadado. Com janela aberta a recarga espera ela fechar, para a lista não
+mudar embaixo de quem está editando (`util/aoMudarBase.ts`).
+
+### `PUT` cria ou altera, e título nulo mantém
 
 `PUT` no número, e não `POST`: o número é do Redmine, quem chama já o sabe, e repetir o mesmo
 pedido tem de dar o mesmo resultado. É o que a skill `/sysmo-redmine-work` usa depois de lançar
 a hora, sem precisar perguntar antes se a tarefa existe.
 
-Na alteração, **campo nulo fica como está**; texto vazio apaga. É o que deixa a skill atualizar
-etapa e versões a partir do Redmine sem apagar o que só existe aqui — a tag, e o dev, que no
-Redmine é o grupo da equipe e aqui é a pessoa. A tela manda todos os campos, então lá vazio
-apaga como se espera.
+Na criação o título é obrigatório. Na alteração, título nulo ou em branco fica como está: a
+skill manda `{}` na tarefa que já existe, e só a data de atualização muda.
 
 `atualizacao` em branco vira o dia de hoje: é o dia em que o histórico foi mexido.
 
 ### Filtro
 
 No backend, em Java, pelo motivo do Controle de Horas: o `LIKE` do SQLite não ignora acento, e
-procurar `projecao` tem de achar `Projeção IA`. Texto casa com o número **ou** o título. Tag é
-lista (`Acordo Comercial, Sell Out`), e filtrar por uma delas traz a tarefa.
-
-Tipo, etapa, dev e tag não têm cadastro: as opções saem do próprio dado. Um cadastro só
-obrigaria a manter duas listas iguais, e etapa nova se digita direto no formulário, que
-sugere as existentes por `<datalist>` sem prender a elas.
-
-## Importação da planilha
-
-`POST /api/tarefas/importar` com o CSV da aba Tarefas (Arquivo → Fazer download → CSV), ou o
-botão **Importar planilha** da tela.
-
-| Regra | Por quê |
-|---|---|
-| só **cria**; tarefa que já existe é ignorada | depois da migração o dado novo é o daqui, e reimportar a planilha velha por engano desfaria o que mudou |
-| colunas achadas pelo **cabeçalho** | reordenar a planilha não pode jogar a etapa no lugar do tipo |
-| tarefa repetida → fica a linha **mais recente** | a planilha guarda o nome antigo e o novo de tarefa renomeada no Redmine |
-| data antes de 2019 → importa e **avisa** | é erro de digitação, e corrigir é de quem conhece a tarefa |
-| versões e tags uma por linha → viram lista com vírgula | é o formato que o filtro e a tela esperam |
-
-O CSV é lido por `servico/Csv.java`, feito à mão: a planilha tem célula com vírgula dentro e
-célula com quebra de linha dentro, que um `split` quebra. `CsvTest` cobre os dois casos e as
-aspas dobradas.
-
-## Testes
-
-```
-cd backend && mvnw.cmd test
-```
-
-Cobrem o leitor de CSV. Importação, filtro e gravação foram verificados contra a base real.
+procurar `projecao` tem de achar `Projeção IA`. Texto casa com o número **ou** o título.
 
 ## Ao alterar
 
-Mudança de coluna da `TB_TAREFA`, da regra de nulo no `PUT` ou do que se lê da `TB_HORA` **muda
+Mudança de coluna da `TB_TAREFA` ou da regra de nulo no `PUT` **muda
 este arquivo e a skill `/sysmo-redmine-work` na mesma tarefa** — a skill grava por esta API.

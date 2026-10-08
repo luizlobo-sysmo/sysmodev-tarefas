@@ -1,52 +1,24 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Modal from './Modal';
 import Confirmacao from './Confirmacao';
-import { Opcoes, REDMINE, Tarefa } from '../types/tarefa';
+import { REDMINE, Tarefa } from '../types/tarefa';
 import { deletarTarefa, localizarTarefa, mensagemDeErro, salvarTarefa } from '../services/api';
 import { paraBrasileiro } from '../util/data';
 
 interface Props {
   /** Nulo para tarefa nova. */
   id: number | null;
-  opcoes: Opcoes;
   onFechar: (alterou: boolean) => void;
 }
 
 interface Formulario {
   numero: string;
   titulo: string;
-  tipo: string;
-  etapa: string;
-  dev: string;
-  tag: string;
-  versoes: string;
 }
 
-const VAZIO: Formulario = { numero: '', titulo: '', tipo: '', etapa: '', dev: '', tag: '', versoes: '' };
+const VAZIO: Formulario = { numero: '', titulo: '' };
 
-/**
- * Campo de texto com sugestões dos valores já usados.
- *
- * <datalist>, e não <select>: a lista sugere, mas não prende — etapa nova ou dev que
- * ainda não apareceu no histórico se digita direto, sem passar por um cadastro.
- */
-function ComSugestao({ rotulo, valor, itens, onMudar }: { rotulo: string; valor: string; itens: string[]; onMudar: (valor: string) => void }) {
-  const lista = `sugestoes-${rotulo.toLowerCase()}`;
-
-  return (
-    <label>
-      {rotulo}
-      <input type="text" list={lista} value={valor} onChange={(e) => onMudar(e.target.value)} />
-      <datalist id={lista}>
-        {itens.map((item) => (
-          <option key={item} value={item} />
-        ))}
-      </datalist>
-    </label>
-  );
-}
-
-export default function EditarTarefa({ id, opcoes, onFechar }: Props) {
+export default function EditarTarefa({ id, onFechar }: Props) {
   const [formulario, setFormulario] = useState<Formulario>(VAZIO);
   const [original, setOriginal] = useState<Tarefa | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -59,15 +31,7 @@ export default function EditarTarefa({ id, opcoes, onFechar }: Props) {
     localizarTarefa(id)
       .then((tarefa) => {
         setOriginal(tarefa);
-        setFormulario({
-          numero: String(tarefa.id),
-          titulo: tarefa.titulo,
-          tipo: tarefa.tipo,
-          etapa: tarefa.etapa,
-          dev: tarefa.dev,
-          tag: tarefa.tag,
-          versoes: tarefa.versoes,
-        });
+        setFormulario({ numero: String(tarefa.id), titulo: tarefa.titulo });
       })
       .catch((e) => setErro(mensagemDeErro(e)));
   }, [id]);
@@ -86,17 +50,7 @@ export default function EditarTarefa({ id, opcoes, onFechar }: Props) {
     setErro(null);
 
     try {
-      // Campos vão todos, mesmo vazios: aqui vazio quer dizer "limpar". O nulo, que
-      // o backend lê como "manter", é para a skill, que só conhece parte dos campos.
-      await salvarTarefa({
-        id: numero,
-        titulo: formulario.titulo,
-        tipo: formulario.tipo,
-        etapa: formulario.etapa,
-        dev: formulario.dev,
-        tag: formulario.tag,
-        versoes: formulario.versoes,
-      });
+      await salvarTarefa({ id: numero, titulo: formulario.titulo });
       onFechar(true);
     } catch (e) {
       setErro(mensagemDeErro(e));
@@ -135,9 +89,6 @@ export default function EditarTarefa({ id, opcoes, onFechar }: Props) {
               autoFocus={id === null}
             />
           </label>
-          <ComSugestao rotulo="Tipo" valor={formulario.tipo} itens={opcoes.tipos} onMudar={mudar('tipo')} />
-          <ComSugestao rotulo="Etapa" valor={formulario.etapa} itens={opcoes.etapas} onMudar={mudar('etapa')} />
-          <ComSugestao rotulo="Dev" valor={formulario.dev} itens={opcoes.devs} onMudar={mudar('dev')} />
         </div>
 
         <label>
@@ -145,29 +96,9 @@ export default function EditarTarefa({ id, opcoes, onFechar }: Props) {
           <textarea rows={2} value={formulario.titulo} onChange={(e) => mudar('titulo')(e.target.value)} required />
         </label>
 
-        <div className="linha">
-          <ComSugestao rotulo="Tag" valor={formulario.tag} itens={opcoes.tags} onMudar={mudar('tag')} />
-          <label>
-            Versões
-            <input
-              type="text"
-              placeholder="2.88.05, 2.89.55"
-              value={formulario.versoes}
-              onChange={(e) => mudar('versoes')(e.target.value)}
-            />
-          </label>
-        </div>
-
         {original && (
           <p className="rodape-tarefa">
             Atualizada em {paraBrasileiro(original.atualizacao)}
-            {original.horasRelogio && (
-              <>
-                {' · '}
-                <strong>{original.horasRelogio}</strong> apontadas de {paraBrasileiro(original.primeiroDia!)} a{' '}
-                {paraBrasileiro(original.ultimoDia!)}
-              </>
-            )}
             {' · '}
             <a href={`${REDMINE}/${original.id}`} target="_blank" rel="noreferrer">
               abrir no Redmine

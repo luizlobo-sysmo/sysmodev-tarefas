@@ -23,14 +23,16 @@ import jakarta.enterprise.context.ApplicationScoped;
  * SQLite nao tem extensao Quarkus, e um pool nao ajudaria um app de um usuario so.
  * Quem chama fecha, sempre em try-with-resources.
  *
- * Este app e dono so da TB_TAREFA. A TB_HORA e do Controle de Horas, e aqui e
- * apenas lida - nunca criada nem alterada. Base nova, sem o Controle de Horas ter
- * subido nunca, simplesmente nao tem horas: ver {@link #temHoras}.
+ * Este app e dono so da TB_TAREFA. A TB_HORA, no mesmo arquivo, e do Controle de
+ * Horas e nao e lida aqui.
  */
 @ApplicationScoped
 public class Base {
 
     private static final Logger LOG = Logger.getLogger(Base.class);
+
+    /** Colunas da primeira versao, quando o historico copiava a planilha. */
+    private static final String[] COLUNAS_REMOVIDAS = { "TX_TIPO", "TX_ETAPA", "TX_DEV", "TX_TAG", "TX_VERSOES" };
 
     @ConfigProperty(name = "base.arquivo")
     String arquivo;
@@ -58,6 +60,22 @@ public class Base {
         LOG.infof("Base local em %s", caminho);
     }
 
+    /**
+     * Instante da ultima gravacao no arquivo da base, em milissegundos.
+     *
+     * E o que a tela consulta para se atualizar sozinha quando outro processo grava -
+     * a skill /sysmo-redmine-work lancando hora, ou o outro app que divide o arquivo.
+     * A data do arquivo, e nao uma contagem de linhas: pega insercao, alteracao e
+     * exclusao em qualquer tabela, com uma leitura de metadado e nenhuma consulta.
+     */
+    public long ultimaGravacao() {
+        try {
+            return Files.getLastModifiedTime(Paths.get(arquivo).toAbsolutePath().normalize()).toMillis();
+        } catch (Exception e) {
+            throw new IllegalStateException("Falha ao ler a data da base", e);
+        }
+    }
+
     public Connection abrir() throws SQLException {
         Path caminho = Paths.get(arquivo).toAbsolutePath().normalize();
 
@@ -74,11 +92,11 @@ public class Base {
     }
 
     /**
-     * Cria a TB_TAREFA se faltar. Roda em toda subida e e idempotente.
+     * Cria a TB_TAREFA se faltar e tira as colunas que deixaram de existir. Roda em
+     * toda subida e e idempotente.
      *
-     * As colunas sao as da aba Tarefas da planilha que este app substitui. Tag e
-     * versoes ficam em texto, separadas por virgula, como na planilha: sao para ler
-     * e filtrar, nao para cruzar com outra tabela.
+     * So numero, titulo e data de atualizacao: tipo, etapa, dev, versoes e horas se
+     * consultam no Redmine, e uma copia aqui so ficaria desatualizada.
      *
      * DT_ATUALIZACAO em texto ISO (yyyy-MM-dd): SQLite nao tem data nativa, e ISO
      * ordena certo como texto.
@@ -89,28 +107,24 @@ public class Base {
                 CREATE TABLE IF NOT EXISTS TB_TAREFA (
                   ID INTEGER PRIMARY KEY,
                   TX_TITULO TEXT NOT NULL,
-                  TX_TIPO TEXT NOT NULL DEFAULT '',
-                  TX_ETAPA TEXT NOT NULL DEFAULT '',
-                  TX_DEV TEXT NOT NULL DEFAULT '',
-                  TX_TAG TEXT NOT NULL DEFAULT '',
-                  TX_VERSOES TEXT NOT NULL DEFAULT '',
                   DT_ATUALIZACAO TEXT NOT NULL
                 )
                 """);
 
             st.executeUpdate("CREATE INDEX IF NOT EXISTS IX_TAREFA_ATUALIZACAO ON TB_TAREFA (DT_ATUALIZACAO)");
+
+            for (String coluna : COLUNAS_REMOVIDAS) {
+                if (temColuna(conexao, coluna)) {
+                    st.executeUpdate("ALTER TABLE TB_TAREFA DROP COLUMN " + coluna);
+                    LOG.infof("Coluna TB_TAREFA.%s removida", coluna);
+                }
+            }
         }
     }
 
-    /**
-     * A TB_HORA existe? E do Controle de Horas; numa base em que ele nunca subiu, nao.
-     *
-     * Perguntado a cada consulta, e nao guardado na subida: o Controle de Horas pode
-     * criar a tabela com este app ja no ar.
-     */
-    public boolean temHoras(Connection conexao) throws SQLException {
+    private static boolean temColuna(Connection conexao, String coluna) throws SQLException {
         DatabaseMetaData meta = conexao.getMetaData();
-        try (ResultSet rs = meta.getTables(null, null, "TB_HORA", new String[] { "TABLE" })) {
+        try (ResultSet rs = meta.getColumns(null, null, "TB_TAREFA", coluna)) {
             return rs.next();
         }
     }
