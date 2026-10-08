@@ -12,8 +12,8 @@ import br.com.lobo.tarefas.dto.TarefaDto;
  * nao ignora acento, e procurar "projecao" tem de achar "Projecao IA" escrito com
  * cedilha e til. A tabela inteira tem centenas de linhas, nao milhares.
  *
- * Texto casa com o numero OU o titulo - quem procura "365158" e quem procura
- * "fechamento" estao fazendo a mesma pergunta.
+ * Texto casa com o numero, o titulo OU a descricao - quem procura "365158" e quem
+ * procura "fechamento" estao fazendo a mesma pergunta.
  */
 public record Filtro(String texto) {
 
@@ -26,7 +26,9 @@ public record Filtro(String texto) {
             return true;
         }
 
-        return String.valueOf(tarefa.id).contains(texto) || normalizar(tarefa.titulo).contains(texto);
+        return String.valueOf(tarefa.id).contains(texto)
+            || normalizar(tarefa.titulo).contains(texto)
+            || normalizar(tarefa.descricao).contains(texto);
     }
 
     /** Minusculas e sem acento: NFD separa a letra da marca, o replace descarta a marca. */

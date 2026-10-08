@@ -14,9 +14,10 @@ interface Props {
 interface Formulario {
   numero: string;
   titulo: string;
+  descricao: string;
 }
 
-const VAZIO: Formulario = { numero: '', titulo: '' };
+const VAZIO: Formulario = { numero: '', titulo: '', descricao: '' };
 
 export default function EditarTarefa({ id, onFechar }: Props) {
   const [formulario, setFormulario] = useState<Formulario>(VAZIO);
@@ -31,7 +32,7 @@ export default function EditarTarefa({ id, onFechar }: Props) {
     localizarTarefa(id)
       .then((tarefa) => {
         setOriginal(tarefa);
-        setFormulario({ numero: String(tarefa.id), titulo: tarefa.titulo });
+        setFormulario({ numero: String(tarefa.id), titulo: tarefa.titulo, descricao: tarefa.descricao });
       })
       .catch((e) => setErro(mensagemDeErro(e)));
   }, [id]);
@@ -50,7 +51,7 @@ export default function EditarTarefa({ id, onFechar }: Props) {
     setErro(null);
 
     try {
-      await salvarTarefa({ id: numero, titulo: formulario.titulo });
+      await salvarTarefa({ id: numero, titulo: formulario.titulo, descricao: formulario.descricao });
       onFechar(true);
     } catch (e) {
       setErro(mensagemDeErro(e));
@@ -94,6 +95,16 @@ export default function EditarTarefa({ id, onFechar }: Props) {
         <label>
           Título
           <textarea rows={2} value={formulario.titulo} onChange={(e) => mudar('titulo')(e.target.value)} required />
+        </label>
+
+        <label>
+          Descrição
+          <textarea
+            rows={3}
+            placeholder="Do que se trata, em uma frase"
+            value={formulario.descricao}
+            onChange={(e) => mudar('descricao')(e.target.value)}
+          />
         </label>
 
         {original && (

@@ -24,6 +24,7 @@ export default function ListaTarefas({ tarefas, onEditar }: Props) {
           <th className="col-data">Atualização</th>
           <th className="col-tarefa">Tarefa</th>
           <th>Título</th>
+          <th>Descrição</th>
         </tr>
       </thead>
       <tbody>
@@ -47,6 +48,7 @@ export default function ListaTarefas({ tarefas, onEditar }: Props) {
               </a>
             </td>
             <td className="titulo-tarefa">{tarefa.titulo}</td>
+            <td className="titulo-tarefa">{tarefa.descricao}</td>
           </tr>
         ))}
       </tbody>

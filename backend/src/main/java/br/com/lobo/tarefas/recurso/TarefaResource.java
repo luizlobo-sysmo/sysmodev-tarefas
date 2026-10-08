@@ -50,7 +50,7 @@ public class TarefaResource {
      * /sysmo-redmine-work usa depois de lancar a hora, sem precisar perguntar antes
      * se a tarefa existe.
      *
-     * Na alteracao, titulo nulo fica como esta - ver TarefaRepositorio.atualizar.
+     * Na alteracao, campo nulo fica como esta - ver TarefaRepositorio.atualizar.
      * `atualizacao` em branco vira hoje: e o dia em que o historico foi mexido.
      */
     @PUT

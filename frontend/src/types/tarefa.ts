@@ -1,18 +1,19 @@
 /**
  * Espelho do DTO do backend.
  *
- * `id` é o número da tarefa no Redmine. O resto da tarefa (tipo, situação, versões,
- * horas) se consulta lá.
+ * `id` é o número da tarefa no Redmine e `titulo` o de lá; `descricao` é uma frase do
+ * que se trata. O resto da tarefa (tipo, situação, versões, horas) se consulta lá.
  */
 export interface Tarefa {
   id: number;
   titulo: string;
+  descricao: string;
   /** ISO, yyyy-MM-dd. */
   atualizacao: string;
 }
 
 export interface Filtro {
-  /** Trecho do número OU do título, sem acento e sem caixa. */
+  /** Trecho do número, do título OU da descrição, sem acento e sem caixa. */
   texto: string;
 }
 

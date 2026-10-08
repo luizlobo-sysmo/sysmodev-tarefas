@@ -5,7 +5,7 @@ interface Props {
   onMudar: (filtro: Filtro) => void;
 }
 
-/** Texto livre: número ou título. */
+/** Texto livre: número, título ou descrição. */
 export default function Filtros({ filtro, onMudar }: Props) {
   return (
     <div className="filtros">
@@ -13,7 +13,7 @@ export default function Filtros({ filtro, onMudar }: Props) {
         Tarefa
         <input
           type="text"
-          placeholder="número ou título"
+          placeholder="número, título ou descrição"
           value={filtro.texto}
           onChange={(e) => onMudar({ ...filtro, texto: e.target.value })}
         />

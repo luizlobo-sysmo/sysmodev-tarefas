@@ -95,8 +95,10 @@ public class Base {
      * Cria a TB_TAREFA se faltar e tira as colunas que deixaram de existir. Roda em
      * toda subida e e idempotente.
      *
-     * So numero, titulo e data de atualizacao: tipo, etapa, dev, versoes e horas se
-     * consultam no Redmine, e uma copia aqui so ficaria desatualizada.
+     * Numero, titulo, descricao e data de atualizacao. O titulo e o do Redmine; a
+     * descricao e uma frase do que se trata, para achar a tarefa depois sem abrir o
+     * Redmine. Tipo, etapa, dev, versoes e horas se consultam la, e uma copia aqui so
+     * ficaria desatualizada.
      *
      * DT_ATUALIZACAO em texto ISO (yyyy-MM-dd): SQLite nao tem data nativa, e ISO
      * ordena certo como texto.
@@ -107,11 +109,17 @@ public class Base {
                 CREATE TABLE IF NOT EXISTS TB_TAREFA (
                   ID INTEGER PRIMARY KEY,
                   TX_TITULO TEXT NOT NULL,
+                  TX_DESCRICAO TEXT NOT NULL DEFAULT '',
                   DT_ATUALIZACAO TEXT NOT NULL
                 )
                 """);
 
             st.executeUpdate("CREATE INDEX IF NOT EXISTS IX_TAREFA_ATUALIZACAO ON TB_TAREFA (DT_ATUALIZACAO)");
+
+            if (!temColuna(conexao, "TX_DESCRICAO")) {
+                st.executeUpdate("ALTER TABLE TB_TAREFA ADD COLUMN TX_DESCRICAO TEXT NOT NULL DEFAULT ''");
+                LOG.info("Coluna TB_TAREFA.TX_DESCRICAO criada");
+            }
 
             for (String coluna : COLUNAS_REMOVIDAS) {
                 if (temColuna(conexao, coluna)) {

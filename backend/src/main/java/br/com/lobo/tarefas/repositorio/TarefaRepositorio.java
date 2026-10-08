@@ -20,6 +20,7 @@ public class TarefaRepositorio {
     private static final String SELECAO = """
         SELECT ID,
                TX_TITULO,
+               TX_DESCRICAO,
                DT_ATUALIZACAO
           FROM TB_TAREFA
         """;
@@ -65,8 +66,8 @@ public class TarefaRepositorio {
 
     public void inserir(TarefaDto tarefa) {
         String sql = """
-            INSERT INTO TB_TAREFA (ID, TX_TITULO, DT_ATUALIZACAO)
-            VALUES (?, ?, ?)
+            INSERT INTO TB_TAREFA (ID, TX_TITULO, TX_DESCRICAO, DT_ATUALIZACAO)
+            VALUES (?, ?, ?, ?)
             """;
 
         try (Connection conexao = base.abrir();
@@ -74,7 +75,8 @@ public class TarefaRepositorio {
 
             ps.setInt(1, tarefa.id);
             ps.setString(2, tarefa.titulo.trim());
-            ps.setString(3, tarefa.atualizacao.toString());
+            ps.setString(3, tarefa.descricao != null ? tarefa.descricao.trim() : "");
+            ps.setString(4, tarefa.atualizacao.toString());
 
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -83,14 +85,16 @@ public class TarefaRepositorio {
     }
 
     /**
-     * Grava a data de atualizacao e, se veio, o titulo; titulo nulo ou em branco fica
-     * como esta. E o que deixa a skill /sysmo-redmine-work so marcar o dia em que a
-     * tarefa foi mexida.
+     * Grava a data de atualizacao e o que veio preenchido. Titulo nulo ou em branco
+     * fica como esta (tarefa sem titulo nao existe); descricao nula fica como esta, e
+     * texto vazio a apaga. E o que deixa a skill /sysmo-redmine-work so marcar o dia
+     * em que a tarefa foi mexida.
      */
     public boolean atualizar(TarefaDto tarefa) {
         String sql = """
             UPDATE TB_TAREFA
                SET TX_TITULO = coalesce(?, TX_TITULO),
+                   TX_DESCRICAO = coalesce(?, TX_DESCRICAO),
                    DT_ATUALIZACAO = ?
              WHERE ID = ?
             """;
@@ -99,8 +103,9 @@ public class TarefaRepositorio {
              PreparedStatement ps = conexao.prepareStatement(sql)) {
 
             ps.setString(1, tarefa.titulo != null && !tarefa.titulo.isBlank() ? tarefa.titulo.trim() : null);
-            ps.setString(2, tarefa.atualizacao.toString());
-            ps.setInt(3, tarefa.id);
+            ps.setString(2, tarefa.descricao != null ? tarefa.descricao.trim() : null);
+            ps.setString(3, tarefa.atualizacao.toString());
+            ps.setInt(4, tarefa.id);
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -125,6 +130,7 @@ public class TarefaRepositorio {
 
         tarefa.id = rs.getInt("ID");
         tarefa.titulo = rs.getString("TX_TITULO");
+        tarefa.descricao = rs.getString("TX_DESCRICAO");
         tarefa.atualizacao = LocalDate.parse(rs.getString("DT_ATUALIZACAO"));
 
         return tarefa;

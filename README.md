@@ -1,7 +1,7 @@
 # Tarefas
 
-Histórico das tarefas do Redmine em que mexi: número, título e o último dia em que a tarefa foi
-mexida. Substitui a aba **Tarefas** da planilha do Google em que esse histórico era mantido à
+Histórico das tarefas do Redmine em que mexi: número, título do Redmine, uma descrição breve do
+que se trata e o último dia em que a tarefa foi mexida. Substitui a aba **Tarefas** da planilha do Google em que esse histórico era mantido à
 mão.
 
 Não é um espelho do Redmine. Tipo, situação, quem fez, versões e horas se consultam lá, pelo
@@ -32,8 +32,11 @@ A base é o `../../db/trabalho.db`, o **mesmo arquivo** do Controle de Horas.
 | `TB_TAREFA` | este app | cria na subida e grava |
 | `TB_HORA` | Controle de Horas | não é lida |
 
-`TB_TAREFA` tem só `ID` (o número da tarefa no Redmine), `TX_TITULO` e `DT_ATUALIZACAO`. A
-subida apaga as colunas da primeira versão (`TX_TIPO`, `TX_ETAPA`, `TX_DEV`, `TX_TAG`,
+`TB_TAREFA` tem só `ID` (o número da tarefa no Redmine), `TX_TITULO`, `TX_DESCRICAO` e
+`DT_ATUALIZACAO`. O título é o do Redmine, que muitas vezes não diz do que a tarefa trata
+("Reforma Tributária 2026 - Compras e WMS"); a descrição é uma frase que diz, para achar a
+tarefa depois. Tarefa anterior à coluna fica com a descrição vazia. A subida cria a
+`TX_DESCRICAO` se faltar e apaga as colunas da primeira versão (`TX_TIPO`, `TX_ETAPA`, `TX_DEV`, `TX_TAG`,
 `TX_VERSOES`), se ainda existirem.
 
 Dois processos gravam o arquivo, e por isso a conexão abre com `PRAGMA busy_timeout = 5000`.
@@ -65,15 +68,17 @@ mudar embaixo de quem está editando (`util/aoMudarBase.ts`).
 pedido tem de dar o mesmo resultado. É o que a skill `/sysmo-redmine-work` usa depois de lançar
 a hora, sem precisar perguntar antes se a tarefa existe.
 
-Na criação o título é obrigatório. Na alteração, título nulo ou em branco fica como está: a
-skill manda `{}` na tarefa que já existe, e só a data de atualização muda.
+Na criação o título é obrigatório. Na alteração, título nulo ou em branco fica como está, e
+descrição nula fica como está (texto vazio apaga): a skill manda `{}` na tarefa que já existe, e
+só a data de atualização muda.
 
 `atualizacao` em branco vira o dia de hoje: é o dia em que o histórico foi mexido.
 
 ### Filtro
 
 No backend, em Java, pelo motivo do Controle de Horas: o `LIKE` do SQLite não ignora acento, e
-procurar `projecao` tem de achar `Projeção IA`. Texto casa com o número **ou** o título.
+procurar `projecao` tem de achar `Projeção IA`. Texto casa com o número, o título **ou** a
+descrição.
 
 ## Ao alterar
 
