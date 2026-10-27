@@ -1,3 +1,5 @@
+import { Button, InputAdornment, Stack, TextField } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import { Filtro, FILTRO_VAZIO, filtroAtivo } from '../types/tarefa';
 
 interface Props {
@@ -8,23 +10,26 @@ interface Props {
 /** Texto livre: número, título ou descrição. */
 export default function Filtros({ filtro, onMudar }: Props) {
   return (
-    <div className="filtros">
-      <label className="cresce">
-        Tarefa
-        <input
-          type="text"
-          placeholder="número, título ou descrição"
-          value={filtro.texto}
-          onChange={(e) => onMudar({ ...filtro, texto: e.target.value })}
-        />
-      </label>
+    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flex: 1 }}>
+      <TextField
+        label="Tarefa"
+        placeholder="número, título ou descrição"
+        value={filtro.texto}
+        onChange={(e) => onMudar({ ...filtro, texto: e.target.value })}
+        sx={{ flex: 1 }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
 
       {/* Só aparece com filtro ativo: botão permanentemente desabilitado é ruído. */}
-      {filtroAtivo(filtro) && (
-        <button type="button" className="botao" onClick={() => onMudar(FILTRO_VAZIO)}>
-          Limpar
-        </button>
-      )}
-    </div>
+      {filtroAtivo(filtro) && <Button onClick={() => onMudar(FILTRO_VAZIO)}>Limpar</Button>}
+    </Stack>
   );
 }

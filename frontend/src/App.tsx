@@ -1,10 +1,29 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  AppBar,
+  Box,
+  Button,
+  CssBaseline,
+  Paper,
+  ThemeProvider,
+  ToggleButton,
+  ToggleButtonGroup,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import SettingsBrightnessOutlinedIcon from '@mui/icons-material/SettingsBrightnessOutlined';
 import Filtros from './components/Filtros';
 import ListaTarefas from './components/ListaTarefas';
 import EditarTarefa from './components/EditarTarefa';
 import { Filtro, FILTRO_VAZIO, Tarefa } from './types/tarefa';
 import { listarTarefas, mensagemDeErro } from './services/api';
 import { lerTema, salvarTema, Tema } from './util/tema';
+import { criarTema } from './util/temaMui';
 import { useAoMudarBase } from './util/aoMudarBase';
 
 type Janela = 'nenhuma' | 'editar';
@@ -16,6 +35,13 @@ export default function App() {
   const [janela, setJanela] = useState<Janela>('nenhuma');
   const [tema, setTema] = useState<Tema>(lerTema());
   const [erro, setErro] = useState<string | null>(null);
+
+  // "Do sistema" resolvido aqui, pela media query: o MUI precisa saber claro ou escuro
+  // para montar a paleta, e o useMediaQuery acompanha o sistema trocando de tema com a
+  // janela aberta, sem F5.
+  const sistemaEscuro = useMediaQuery('(prefers-color-scheme: dark)');
+  const escuro = tema === 'escuro' || (tema === 'sistema' && sistemaEscuro);
+  const temaMui = useMemo(() => criarTema(escuro), [escuro]);
 
   const atualizar = useCallback(async () => {
     setErro(null);
@@ -54,43 +80,60 @@ export default function App() {
     }
   }
 
-  function mudarTema(novo: Tema) {
+  function mudarTema(novo: Tema | null) {
+    // ToggleButtonGroup exclusivo devolve null ao clicar no botão já escolhido.
+    if (!novo) return;
     salvarTema(novo);
     setTema(novo);
   }
 
   return (
-    <div className="app">
-      <header className="cabecalho">
-        <h1>Tarefas</h1>
-        <span className="contagem">{tarefas.length} tarefa(s)</span>
+    <ThemeProvider theme={temaMui}>
+      <CssBaseline />
 
-        <div className="acoes">
-          <button type="button" className="botao primario" onClick={() => abrir(null)}>
-            Nova tarefa
-          </button>
-          <label>
-            Tema
-            <select value={tema} onChange={(e) => mudarTema(e.target.value as Tema)}>
-              <option value="sistema">Do sistema</option>
-              <option value="claro">Claro</option>
-              <option value="escuro">Escuro</option>
-            </select>
-          </label>
-        </div>
-      </header>
+      <AppBar position="sticky" sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Toolbar sx={{ gap: 2, px: { xs: 2, sm: 4 } }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Tarefas
+          </Typography>
+          <Typography variant="body2" color="text.disabled">
+            {tarefas.length} tarefa(s)
+          </Typography>
 
-      <div className="barra-filtro">
+          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => abrir(null)}>
+              Nova tarefa
+            </Button>
+            <ToggleButtonGroup exclusive size="small" value={tema} onChange={(_, novo) => mudarTema(novo)} aria-label="Tema">
+              <ToggleButton value="claro" title="Claro">
+                <LightModeOutlinedIcon fontSize="small" />
+              </ToggleButton>
+              <ToggleButton value="sistema" title="Do sistema">
+                <SettingsBrightnessOutlinedIcon fontSize="small" />
+              </ToggleButton>
+              <ToggleButton value="escuro" title="Escuro">
+                <DarkModeOutlinedIcon fontSize="small" />
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      <Paper square elevation={0} sx={{ px: { xs: 2, sm: 4 }, py: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex' }}>
         <Filtros filtro={filtro} onMudar={setFiltro} />
-      </div>
+      </Paper>
 
-      {erro && <p className="erro faixa">{erro}</p>}
+      <Box sx={{ px: { xs: 2, sm: 4 }, py: 2.5 }}>
+        {erro && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {erro}
+          </Alert>
+        )}
 
-      <main>
         <ListaTarefas tarefas={tarefas} onEditar={abrir} />
-      </main>
+      </Box>
 
       {janela === 'editar' && <EditarTarefa id={editando} onFechar={fechar} />}
-    </div>
+    </ThemeProvider>
   );
 }

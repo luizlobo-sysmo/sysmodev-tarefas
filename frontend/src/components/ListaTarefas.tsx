@@ -1,5 +1,7 @@
+import { Link, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { REDMINE, Tarefa } from '../types/tarefa';
 import { paraBrasileiro } from '../util/data';
+import { FONTE_MONO } from '../util/temaMui';
 
 interface Props {
   tarefas: Tarefa[];
@@ -14,44 +16,67 @@ interface Props {
  */
 export default function ListaTarefas({ tarefas, onEditar }: Props) {
   if (tarefas.length === 0) {
-    return <p className="vazio">Nenhuma tarefa.</p>;
+    return (
+      <Typography color="text.disabled" sx={{ fontStyle: 'italic' }}>
+        Nenhuma tarefa.
+      </Typography>
+    );
   }
 
+  const numero = { fontFamily: FONTE_MONO, whiteSpace: 'nowrap' } as const;
+
   return (
-    <table className="tabela-dia tabela-tarefas">
-      <thead>
-        <tr>
-          <th className="col-data">Atualização</th>
-          <th className="col-tarefa">Tarefa</th>
-          <th>Título</th>
-          <th>Descrição</th>
-        </tr>
-      </thead>
-      <tbody>
-        {tarefas.map((tarefa) => (
-          <tr
-            key={tarefa.id}
-            tabIndex={0}
-            title="Abrir para editar"
-            onClick={() => onEditar(tarefa.id)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onEditar(tarefa.id);
-              }
-            }}
-          >
-            <td className="col-data numero">{paraBrasileiro(tarefa.atualizacao)}</td>
-            <td className="col-tarefa numero">
-              <a href={`${REDMINE}/${tarefa.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
-                {tarefa.id}
-              </a>
-            </td>
-            <td className="titulo-tarefa">{tarefa.titulo}</td>
-            <td className="titulo-tarefa">{tarefa.descricao}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <TableContainer component={Paper} variant="outlined">
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ width: 110 }}>Atualização</TableCell>
+            <TableCell sx={{ width: 90 }}>Tarefa</TableCell>
+            <TableCell>Título</TableCell>
+            <TableCell>Descrição</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {tarefas.map((tarefa) => (
+            <TableRow
+              key={tarefa.id}
+              hover
+              tabIndex={0}
+              title="Abrir para editar"
+              onClick={() => onEditar(tarefa.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onEditar(tarefa.id);
+                }
+              }}
+              // A linha e focavel (abre a edicao por Enter). Sem realce visivel, quem
+              // navega por Tab nao saberia onde esta.
+              sx={{
+                cursor: 'pointer',
+                verticalAlign: 'top',
+                '&:focus-visible': { outline: 'none', bgcolor: 'action.selected', boxShadow: (t) => `inset 2px 0 0 ${t.palette.primary.main}` },
+              }}
+            >
+              <TableCell sx={numero}>{paraBrasileiro(tarefa.atualizacao)}</TableCell>
+              <TableCell sx={numero}>
+                <Link
+                  href={`${REDMINE}/${tarefa.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  underline="hover"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {tarefa.id}
+                </Link>
+              </TableCell>
+              {/* Título com quebra de linha dentro (a planilha tem): a quebra é do texto, fica. */}
+              <TableCell sx={{ whiteSpace: 'pre-line' }}>{tarefa.titulo}</TableCell>
+              <TableCell sx={{ whiteSpace: 'pre-line', color: 'text.secondary' }}>{tarefa.descricao}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }

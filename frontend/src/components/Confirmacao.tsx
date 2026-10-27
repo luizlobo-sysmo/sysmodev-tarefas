@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import Modal from './Modal';
+import { ReactNode, useRef } from 'react';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 
 interface Props {
   titulo: string;
@@ -21,7 +21,9 @@ interface Props {
  * a aba - com o modal de lancamento aberto atras, a tela some por baixo de uma
  * caixa cinza do navegador.
  *
- * Abre por cima do modal que a chamou: mesmo z-index, mas depois no DOM.
+ * Abre por cima da janela que a chamou. O Dialog do MUI empilha sozinho e so o de
+ * cima responde ao Esc - era o que a pilha do Modal antigo fazia a mao, para um Esc
+ * nao fechar a confirmacao e a edicao juntas.
  */
 export default function Confirmacao({
   titulo,
@@ -31,22 +33,33 @@ export default function Confirmacao({
   onConfirmar,
   onCancelar,
 }: Props) {
-  return (
-    <Modal titulo={titulo} largura={420} onFechar={onCancelar}>
-      <div className="formulario">
-        <p className="pergunta">{children}</p>
+  const cancelar = useRef<HTMLButtonElement>(null);
 
-        <footer className="modal-rodape">
-          <span className="espaco" />
-          {/* O foco comeca no Cancelar: um Enter distraido nao deve apagar nada. */}
-          <button type="button" className="botao" onClick={onCancelar} autoFocus>
-            Cancelar
-          </button>
-          <button type="button" className={`botao ${perigo ? 'excluir' : 'primario'}`} onClick={onConfirmar}>
-            {rotuloConfirmar}
-          </button>
-        </footer>
-      </div>
-    </Modal>
+  return (
+    <Dialog
+      open
+      onClose={onCancelar}
+      maxWidth="xs"
+      fullWidth
+      // O foco comeca no Cancelar: um Enter distraido nao deve apagar nada. Pelo fim da
+      // animacao de entrada, e nao por autoFocus: o Dialog do MUI leva o foco para a
+      // propria janela ao abrir, por cima do autoFocus do botao.
+      TransitionProps={{ onEntered: () => cancelar.current?.focus() }}
+    >
+      <DialogTitle sx={{ fontWeight: 600 }}>{titulo}</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" sx={{ '& strong': { fontWeight: 600 } }}>
+          {children}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button ref={cancelar} variant="outlined" color="inherit" onClick={onCancelar}>
+          Cancelar
+        </Button>
+        <Button variant={perigo ? 'outlined' : 'contained'} color={perigo ? 'error' : 'primary'} onClick={onConfirmar}>
+          {rotuloConfirmar}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
