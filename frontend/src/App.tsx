@@ -14,6 +14,8 @@ import ListaTarefas from './components/ListaTarefas';
 import EditarTarefa from './components/EditarTarefa';
 import { Filtro, FILTRO_VAZIO, Tarefa } from './types/tarefa';
 import { listarTarefas, mensagemDeErro } from './services/api';
+import MarcaProjeto from '@comum/mui/MarcaProjeto';
+import { MARCAS } from '@comum/mui/marca';
 import { SeletorTema } from '@comum/mui/TemaSysmoDev';
 import { useAoMudarBase } from '@comum/mui/aoMudarBase';
 
@@ -69,6 +71,7 @@ export default function App() {
 
       <AppBar position="sticky" sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar sx={{ gap: 2, px: 4 }}>
+          <MarcaProjeto {...MARCAS.tarefas} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Tarefas
           </Typography>
