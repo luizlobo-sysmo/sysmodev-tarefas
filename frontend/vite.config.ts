@@ -1,8 +1,13 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    // Comum dos fronts SysmoDev (submodule sysmodev-react-common em ./comum).
+    alias: { '@comum': fileURLToPath(new URL('./comum/src', import.meta.url)) },
+  },
   server: {
     // 8003, na faixa 80xx dos projetos de Desenvolvimento: 8001 e dos Simuladores e
     // 8002 do Controle de Horas. Porta repetida deixaria o Painel sem saber qual

@@ -1,7 +1,7 @@
 import { Link, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { REDMINE, Tarefa } from '../types/tarefa';
 import { paraBrasileiro } from '../util/data';
-import { FONTE_MONO } from '../util/temaMui';
+import { FONTE_MONO } from '@comum/mui/temaMui';
 
 interface Props {
   tarefas: Tarefa[];

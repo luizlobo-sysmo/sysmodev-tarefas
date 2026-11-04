@@ -12,7 +12,7 @@
                         sistema; sem ela, o seletor nao teria efeito nessa maquina.
   - `[data-theme="dark"]` ..... escolha explicita "Escuro", vence nos dois sentidos.
 
-  A opcao "Sistema" REMOVE o atributo (ver util/tema.ts) em vez de resolver para
+  A opcao "Sistema" REMOVE o atributo (ver tema.ts do comum) em vez de resolver para
   claro ou escuro: assim a tela acompanha o sistema trocando de tema com a janela
   aberta, sem F5.
 
@@ -20,7 +20,7 @@
   Monitoramento). Tres apps do mesmo dono com cores diferentes so obrigam a
   reaprender o que cada cor quer dizer.
 
-  O visual da tela e do Material UI (util/temaMui.ts, com as mesmas cores). Estes
+  O visual da tela e do Material UI (temaMui.ts do comum, com as mesmas cores). Estes
   tokens ficam so para o fundo do body na primeira pintura, antes de o React montar
   o tema: sem eles a tela piscaria branca no escuro.
 */

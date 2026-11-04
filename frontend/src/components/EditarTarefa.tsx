@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import Confirmacao from './Confirmacao';
+import Confirmacao from '@comum/mui/Confirmacao';
 import { REDMINE, Tarefa } from '../types/tarefa';
 import { deletarTarefa, localizarTarefa, mensagemDeErro, salvarTarefa } from '../services/api';
 import { paraBrasileiro } from '../util/data';

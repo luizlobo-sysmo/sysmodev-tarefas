@@ -1,0 +1,3 @@
+[submodule "frontend/comum"]
+	path = frontend/comum
+	url = https://github.com/luizlobo-sysmo/sysmodev-react-common.git
